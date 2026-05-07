@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.gourmet.kitchen";
+option java_outer_classname = "KitchenProto";
+
+message CreateTicketRequest {
+  string order_id = 1;
+}
+
+message CreateTicketResponse {
+  bool   success   = 1;
+  string ticket_id = 2;
+}
+
+message RejectTicketRequest {
+  string ticket_id = 1;
+}
+
+message RejectTicketResponse {
+  bool acknowledgement = 1;
+}
+
+service KitchenService {
+  rpc CreateTicket (CreateTicketRequest) returns (CreateTicketResponse);
+  rpc RejectTicket (RejectTicketRequest) returns (RejectTicketResponse);
+}

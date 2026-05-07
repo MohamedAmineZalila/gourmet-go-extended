@@ -1,0 +1,170 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────
+# Gourmet-Go — Distributed Order System
+# Images are pulled from Docker Hub (set DOCKERHUB_USERNAME below)
+# Usage: docker-compose up
+# ─────────────────────────────────────────────────────────────────
+
+x-postgres-common: &pg-common
+  image: postgres:15-alpine
+  restart: unless-stopped
+  environment:
+    POSTGRES_USER:     postgres
+    POSTGRES_PASSWORD: postgres
+
+services:
+
+  # ── Databases ────────────────────────────────────────────────
+
+  order-db:
+    <<: *pg-common
+    container_name: order-db
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB:       orderdb
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    networks:
+      - gourmet-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d orderdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  kitchen-db:
+    <<: *pg-common
+    container_name: kitchen-db
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB:       kitchendb
+    volumes:
+      - kitchen-db-data:/var/lib/postgresql/data
+    networks:
+      - gourmet-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kitchendb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  accounting-db:
+    <<: *pg-common
+    container_name: accounting-db
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB:       accountingdb
+    volumes:
+      - accounting-db-data:/var/lib/postgresql/data
+    networks:
+      - gourmet-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d accountingdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Microservices ────────────────────────────────────────────
+
+  order-service:
+    image: ${DOCKERHUB_USERNAME}/gourmet-order-service:latest
+    container_name: order-service
+    ports:
+      - "50051:50051"
+    environment:
+      GRPC_PORT: 50051
+      DB_HOST:   order-db
+      DB_PORT:   5432
+      DB_NAME:   orderdb
+      DB_USER:   postgres
+      DB_PASS:   postgres
+    depends_on:
+      order-db:
+        condition: service_healthy
+    networks:
+      - gourmet-net
+    restart: on-failure
+
+  kitchen-service:
+    image: ${DOCKERHUB_USERNAME}/gourmet-kitchen-service:latest
+    container_name: kitchen-service
+    ports:
+      - "50052:50052"
+    environment:
+      GRPC_PORT: 50052
+      DB_HOST:   kitchen-db
+      DB_PORT:   5432
+      DB_NAME:   kitchendb
+      DB_USER:   postgres
+      DB_PASS:   postgres
+    depends_on:
+      kitchen-db:
+        condition: service_healthy
+    networks:
+      - gourmet-net
+    restart: on-failure
+
+  accounting-service:
+    image: ${DOCKERHUB_USERNAME}/gourmet-accounting-service:latest
+    container_name: accounting-service
+    ports:
+      - "50053:50053"
+    environment:
+      GRPC_PORT: 50053
+      DB_HOST:   accounting-db
+      DB_PORT:   5432
+      DB_NAME:   accountingdb
+      DB_USER:   postgres
+      DB_PASS:   postgres
+    depends_on:
+      accounting-db:
+        condition: service_healthy
+    networks:
+      - gourmet-net
+    restart: on-failure
+
+  order-orchestrator:
+    image: ${DOCKERHUB_USERNAME}/gourmet-orchestrator:latest
+    container_name: order-orchestrator
+    ports:
+      - "8080:8080"
+    environment:
+      HTTP_PORT:              8080
+      ORDER_SERVICE_HOST:     order-service
+      ORDER_SERVICE_PORT:     50051
+      KITCHEN_SERVICE_HOST:   kitchen-service
+      KITCHEN_SERVICE_PORT:   50052
+      ACCOUNTING_SERVICE_HOST: accounting-service
+      ACCOUNTING_SERVICE_PORT: 50053
+    depends_on:
+      - order-service
+      - kitchen-service
+      - accounting-service
+    networks:
+      - gourmet-net
+    restart: on-failure
+
+  gourmet-ui:
+    image: ${DOCKERHUB_USERNAME}/gourmet-ui:latest
+    container_name: gourmet-ui
+    ports:
+      - "80:80"
+    depends_on:
+      - order-orchestrator
+    networks:
+      - gourmet-net
+
+# ── Volumes & Network ─────────────────────────────────────────
+
+volumes:
+  order-db-data:
+  kitchen-db-data:
+  accounting-db-data:
+
+networks:
+  gourmet-net:
+    driver: bridge

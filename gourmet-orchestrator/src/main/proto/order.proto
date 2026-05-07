@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.gourmet.order";
+option java_outer_classname = "OrderProto";
+
+enum OrderStatus {
+  PENDING = 0;
+  APPROVAL_PENDING = 1;
+  APPROVED = 2;
+  REJECTED = 3;
+  CANCELLED = 4;
+}
+
+message CreateOrderRequest {
+  string order_id = 1;
+  double amount   = 2;
+}
+
+message CreateOrderResponse {
+  string order_id = 1;
+  bool   success  = 2;
+}
+
+message UpdateStatusRequest {
+  string      order_id = 1;
+  OrderStatus status   = 2;
+}
+
+message UpdateStatusResponse {
+  string      order_id   = 1;
+  OrderStatus new_status = 2;
+  bool        success    = 3;
+}
+
+message GetOrderRequest {
+  string order_id = 1;
+}
+
+message GetOrderResponse {
+  string      order_id = 1;
+  OrderStatus status   = 2;
+  double      amount   = 3;
+  bool        found    = 4;
+}
+
+message ListOrdersRequest {}
+
+message OrderSummary {
+  string      order_id   = 1;
+  OrderStatus status     = 2;
+  double      amount     = 3;
+  string      created_at = 4;
+}
+
+message ListOrdersResponse {
+  repeated OrderSummary orders = 1;
+}
+
+message CancelOrderRequest {
+  string order_id = 1;
+}
+
+message CancelOrderResponse {
+  bool   success  = 1;
+  string order_id = 2;
+}
+
+service OrderService {
+  rpc CreateOrder  (CreateOrderRequest)  returns (CreateOrderResponse);
+  rpc UpdateStatus (UpdateStatusRequest) returns (UpdateStatusResponse);
+  rpc GetOrder     (GetOrderRequest)     returns (GetOrderResponse);
+  rpc ListOrders   (ListOrdersRequest)   returns (ListOrdersResponse);
+  rpc CancelOrder  (CancelOrderRequest)  returns (CancelOrderResponse);
+}
