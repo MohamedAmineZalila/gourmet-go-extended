@@ -6,19 +6,19 @@
   <title>Gourmet-Go — Order System</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;padding:32px 16px}
+    body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;padding:32px 16px;max-width:860px;margin:0 auto}
     h1{font-size:2rem;color:#f97316;letter-spacing:1px}
     .subtitle{color:#94a3b8;font-size:.9rem;margin-top:4px;margin-bottom:32px}
     header{text-align:center;margin-bottom:36px}
 
     /* Tabs */
-    .tabs{display:flex;gap:8px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
-    .tab{padding:9px 22px;border-radius:8px;border:1px solid #2d3148;background:#1e2130;color:#94a3b8;cursor:pointer;font-size:.9rem;transition:all .2s}
+    .tabs{display:flex;gap:8px;justify-content:center;margin-bottom:28px;flex-wrap:wrap;max-width:100%;margin-left:auto;margin-right:auto}
+    .tab{padding:9px 22px;border-radius:99px;border:1px solid #2d3148;background:#1e2130;color:#94a3b8;cursor:pointer;font-size:.88rem;transition:all .2s}
     .tab.active{background:#f97316;color:#fff;border-color:#f97316}
     .tab:hover:not(.active){border-color:#f97316;color:#f97316}
 
     /* Cards */
-    .card{background:#1e2130;border:1px solid #2d3148;border-radius:12px;padding:24px 28px;width:100%;max-width:600px;margin:0 auto 24px}
+    .card{background:#1e2130;border:1px solid #2d3148;border-radius:12px;padding:24px 28px;width:100%;max-width:100%;margin:0 auto 24px}
     h2{font-size:1.05rem;color:#f1f5f9;margin-bottom:18px;border-bottom:1px solid #2d3148;padding-bottom:10px}
 
     label{display:block;font-size:.8rem;color:#94a3b8;margin-bottom:5px;margin-top:14px}
@@ -110,7 +110,7 @@
 
 <!-- ── DASHBOARD ───────────────────────────────────────── -->
 <div id="page-dashboard" class="page">
-  <div class="card" style="max-width:700px">
+  <div class="card" style="max-width:100%">
     <h2>📊 Live Dashboard <button class="btn-blue btn-sm" style="float:right" onclick="loadDashboard()">↻ Refresh</button></h2>
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-num c-total" id="d-total">—</div><div class="stat-label">Total Orders</div></div>
@@ -125,7 +125,7 @@
 
 <!-- ── HISTORY ─────────────────────────────────────────── -->
 <div id="page-history" class="page">
-  <div class="card" style="max-width:760px">
+  <div class="card" style="max-width:100%">
     <h2>📋 Order History <button class="btn-blue btn-sm" style="float:right" onclick="loadHistory()">↻ Refresh</button></h2>
     <div class="tbl-wrap">
       <table>
@@ -179,10 +179,10 @@
       result.className = 'alert ' + (s==='APPROVED'?'approved':s==='REJECTED'?'rejected':'error-box');
       result.style.display='block';
       result.innerHTML = s==='APPROVED'
-        ? `✅ Order <b>${data.orderId}</b> → <b>APPROVED</b>`
-        : s==='REJECTED'
-        ? `❌ Order <b>${data.orderId}</b> → <b>REJECTED</b> — payment failed, compensation triggered`
-        : `⚠️ ${s}`;
+              ? `✅ Order <b>${data.orderId}</b> → <b>APPROVED</b>`
+              : s==='REJECTED'
+                      ? `❌ Order <b>${data.orderId}</b> → <b>REJECTED</b> — payment failed, compensation triggered`
+                      : `⚠️ ${s}`;
       document.getElementById('orderId').value='';
     } catch(e) {
       result.className='alert error-box'; result.style.display='block';
@@ -246,9 +246,9 @@
           <td><span class="badge badge-${o.status}">${o.status}</span></td>
           <td style="color:#64748b;font-size:.78rem">${date}</td>
           <td>${canCancel
-            ? `<button class="btn-red btn-sm" onclick="cancelOrder('${o.orderId}')">Cancel</button>`
-            : '<span style="color:#374151;font-size:.78rem">—</span>'
-          }</td>
+                ? `<button class="btn-red btn-sm" onclick="cancelOrder('${o.orderId}')">Cancel</button>`
+                : '<span style="color:#374151;font-size:.78rem">—</span>'
+        }</td>
         </tr>`;
       }).join('');
     } catch(e) {
@@ -266,8 +266,8 @@
       result.className = 'alert ' + (ok?'cancelled':'error-box');
       result.style.display='block';
       result.innerHTML = ok
-        ? `🚫 Order <b>${orderId}</b> has been <b>cancelled</b>.`
-        : `⚠️ Could not cancel: ${data.status}`;
+              ? `🚫 Order <b>${orderId}</b> has been <b>cancelled</b>.`
+              : `⚠️ Could not cancel: ${data.status}`;
       if (ok) loadHistory();
     } catch(e) {
       result.className='alert error-box'; result.style.display='block';
